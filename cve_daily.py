@@ -98,6 +98,15 @@ def escape_html(text: str) -> str:
     return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
+def strip_html(raw: str) -> str:
+    """Remove HTML tags and decode common entities."""
+    import re
+    text = re.sub(r"<[^>]+>", " ", raw)
+    text = text.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">")
+    text = text.replace("&nbsp;", " ").replace("&quot;", '"')
+    return " ".join(text.split())
+
+
 def send_message(text: str, disable_preview: bool = True) -> bool:
     payload = {
         "chat_id": TELEGRAM_CHANNEL,
@@ -152,7 +161,11 @@ def detect_severity(text: str) -> str:
 def format_cve(feed_name: str, entry) -> str:
     title = escape_html(entry.get("title", "No title"))
     link = entry.get("link", "")
-    summary = escape_html(entry.get("summary", "")[:400]).strip()
+    raw_summary = entry.get("summary", "")
+    plain = strip_html(raw_summary)[:400].strip()
+    if len(strip_html(raw_summary)) > 400:
+        plain += "…"
+    summary = escape_html(plain)
     severity = detect_severity(entry.get("summary", "") + entry.get("title", ""))
 
     cve_match = re.search(r"CVE-\d{4}-\d+", entry.get("title", "") + entry.get("summary", ""))

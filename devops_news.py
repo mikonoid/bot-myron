@@ -79,6 +79,15 @@ def escape_html(text: str) -> str:
     return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
+def strip_html(raw: str) -> str:
+    """Remove HTML tags and decode common entities."""
+    import re
+    text = re.sub(r"<[^>]+>", " ", raw)
+    text = text.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">")
+    text = text.replace("&nbsp;", " ").replace("&quot;", '"')
+    return " ".join(text.split())
+
+
 def send_message(text: str, disable_preview: bool = True) -> bool:
     payload = {
         "chat_id": TELEGRAM_CHANNEL,
@@ -114,9 +123,11 @@ def parse_published(entry) -> datetime | None:
 def format_entry(feed_name: str, entry) -> str:
     title = escape_html(entry.get("title", "No title"))
     link = entry.get("link", "")
-    summary = escape_html(entry.get("summary", "")[:300]).strip()
-    if len(entry.get("summary", "")) > 300:
-        summary += "…"
+    raw_summary = entry.get("summary", "")
+    plain = strip_html(raw_summary)[:300].strip()
+    if len(strip_html(raw_summary)) > 300:
+        plain += "…"
+    summary = escape_html(plain)
 
     is_release = feed_name.startswith("📦")
 
