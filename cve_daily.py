@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-CVE & Release Monitor for @devopsdaily
-Separate script with its own posted‑IDs file so it can run on a tighter schedule.
+CVE Daily Monitor for @devopsdaily
+Раз на день перевіряє CVE, фільтрує тільки k8s/docker/aws/linux/devops.
 """
 
 import os
 import json
 import hashlib
 import logging
-import time
 import re
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -23,8 +23,8 @@ import requests
 TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 TELEGRAM_CHANNEL = os.environ.get("TELEGRAM_CHANNEL", "@devopsdaily")
 POSTED_IDS_FILE = Path(os.environ.get("POSTED_IDS_FILE", "posted_ids_cve.json"))
-MAX_ITEMS_PER_FEED = int(os.environ.get("MAX_ITEMS_PER_FEED", "5"))
-MAX_AGE_HOURS = int(os.environ.get("MAX_AGE_HOURS", "6"))
+MAX_ITEMS = int(os.environ.get("MAX_ITEMS", "5"))
+MAX_AGE_HOURS = int(os.environ.get("MAX_AGE_HOURS", "48"))
 
 TELEGRAM_API = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
 
@@ -32,31 +32,42 @@ TELEGRAM_API = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
 # CVE Feeds
 # ---------------------------------------------------------------------------
 CVE_FEEDS = {
-    "🚨 NVD Recent CVEs": "https://nvd.nist.gov/feeds/xml/cve/misc/nvd-rss.xml",
-    "🚨 CISA Known Exploited": "https://www.cisa.gov/cybersecurity-advisories/all.xml",
+    "🚨 NVD CVE": "https://nvd.nist.gov/feeds/xml/cve/misc/nvd-rss.xml",
+    "🚨 CISA Advisories": "https://www.cisa.gov/cybersecurity-advisories/all.xml",
 }
 
 # ---------------------------------------------------------------------------
-# Release Feeds (GitHub Atom)
+# Keyword filter — тільки DevOps‑related CVE
 # ---------------------------------------------------------------------------
-RELEASE_FEEDS = {
-    "📦 Kubernetes": "https://github.com/kubernetes/kubernetes/releases.atom",
-    "📦 Terraform": "https://github.com/hashicorp/terraform/releases.atom",
-    "📦 Docker CLI": "https://github.com/docker/cli/releases.atom",
-    "📦 Helm": "https://github.com/helm/helm/releases.atom",
-    "📦 ArgoCD": "https://github.com/argoproj/argo-cd/releases.atom",
-    "📦 Prometheus": "https://github.com/prometheus/prometheus/releases.atom",
-    "📦 Grafana": "https://github.com/grafana/grafana/releases.atom",
-    "📦 NGINX Ingress": "https://github.com/kubernetes/ingress-nginx/releases.atom",
-    "📦 AWS CLI": "https://github.com/aws/aws-cli/releases.atom",
-    "📦 Trivy": "https://github.com/aquasecurity/trivy/releases.atom",
-}
+KEYWORDS = [
+    "kubernetes", "k8s", "kube-",
+    "docker", "containerd", "runc", "moby",
+    "aws", "amazon", "ec2", "s3", "lambda", "eks", "ecs", "ecr",
+    "linux", "kernel", "glibc", "systemd", "openssh", "openssl",
+    "devops", "jenkins", "gitlab", "github", "cicd", "ci/cd",
+    "terraform", "ansible", "helm", "argocd", "argo",
+    "nginx", "envoy", "istio", "traefik",
+    "prometheus", "grafana", "elasticsearch", "kibana",
+    "redis", "postgres", "mysql", "mongodb",
+    "vault", "consul", "nomad",
+    "trivy", "falco", "grype", "snyk",
+    "cloud", "container", "node.js", "python",
+]
+
+
+def is_relevant(entry) -> bool:
+    """Return True if any keyword matches title or summary."""
+    text = (
+        entry.get("title", "") + " " + entry.get("summary", "")
+    ).lower()
+    return any(kw in text for kw in KEYWORDS)
+
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
 )
-log = logging.getLogger("cve-releases")
+log = logging.getLogger("cve-daily")
 
 # ---------------------------------------------------------------------------
 # Persistence
@@ -119,7 +130,7 @@ def parse_published(entry) -> datetime | None:
     return None
 
 # ---------------------------------------------------------------------------
-# CVE severity helper
+# Severity
 # ---------------------------------------------------------------------------
 
 SEVERITY_EMOJI = {
@@ -144,7 +155,6 @@ def format_cve(feed_name: str, entry) -> str:
     summary = escape_html(entry.get("summary", "")[:400]).strip()
     severity = detect_severity(entry.get("summary", "") + entry.get("title", ""))
 
-    # Try to extract CVE ID
     cve_match = re.search(r"CVE-\d{4}-\d+", entry.get("title", "") + entry.get("summary", ""))
     cve_id = cve_match.group(0) if cve_match else ""
 
@@ -164,22 +174,6 @@ def format_cve(feed_name: str, entry) -> str:
     lines.append("\n🤖 <i>#CVE #Security #DevOpsDaily</i>")
     return "\n".join(lines)
 
-
-def format_release(feed_name: str, entry) -> str:
-    title = escape_html(entry.get("title", "No title"))
-    link = entry.get("link", "")
-
-    lines = [
-        f"<b>{feed_name}</b>",
-        "",
-        f"🆕 <b>{title}</b>",
-        "",
-    ]
-    if link:
-        lines.append(f'🔗 <a href="{link}">Release notes</a>')
-    lines.append("\n🤖 <i>#Release #DevOpsDaily</i>")
-    return "\n".join(lines)
-
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -192,7 +186,6 @@ def run():
     cutoff = now - timedelta(hours=MAX_AGE_HOURS)
     total = 0
 
-    # --- CVEs ---
     for name, url in CVE_FEEDS.items():
         log.info("Fetching %s", name)
         try:
@@ -200,48 +193,31 @@ def run():
         except Exception as exc:
             log.error("Parse error %s: %s", url, exc)
             continue
-        sent = 0
+
         for entry in feed.entries:
-            if sent >= MAX_ITEMS_PER_FEED:
+            if total >= MAX_ITEMS:
                 break
+
             eid = entry_id(entry)
             if eid in posted:
                 continue
+
             pub = parse_published(entry)
             if pub and pub < cutoff:
                 continue
+
+            # ---- keyword filter ----
+            if not is_relevant(entry):
+                continue
+
             if send_message(format_cve(name, entry)):
                 new_posted.add(eid)
-                sent += 1
                 total += 1
-                time.sleep(2)
-
-    # --- Releases ---
-    for name, url in RELEASE_FEEDS.items():
-        log.info("Fetching %s", name)
-        try:
-            feed = feedparser.parse(url)
-        except Exception as exc:
-            log.error("Parse error %s: %s", url, exc)
-            continue
-        sent = 0
-        for entry in feed.entries:
-            if sent >= MAX_ITEMS_PER_FEED:
-                break
-            eid = entry_id(entry)
-            if eid in posted:
-                continue
-            pub = parse_published(entry)
-            if pub and pub < cutoff:
-                continue
-            if send_message(format_release(name, entry)):
-                new_posted.add(eid)
-                sent += 1
-                total += 1
-                time.sleep(2)
+                log.info("  ✓ %s", entry.get("title", "?")[:80])
+                time.sleep(3)
 
     save_posted_ids(new_posted)
-    log.info("Done. Sent %d items.", total)
+    log.info("Done. Sent %d CVE items.", total)
 
 
 if __name__ == "__main__":
