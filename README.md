@@ -1,1 +1,1 @@
-# 🤖 bot-myron — DevOps Daily Telegram Bot
+# bot-myron — DevOps Daily Telegram Bot
