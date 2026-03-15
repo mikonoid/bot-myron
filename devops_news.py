@@ -22,7 +22,7 @@ import requests
 TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 TELEGRAM_CHANNEL = os.environ.get("TELEGRAM_CHANNEL", "@devopsdaily")
 POSTED_IDS_FILE = Path(os.environ.get("POSTED_IDS_FILE", "posted_ids_news.json"))
-MAX_ITEMS_PER_FEED = int(os.environ.get("MAX_ITEMS_PER_FEED", "5"))
+MAX_ITEMS_PER_FEED = int(os.environ.get("MAX_ITEMS_PER_FEED", "1"))
 MAX_AGE_HOURS = int(os.environ.get("MAX_AGE_HOURS", "48"))
 
 TELEGRAM_API = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
@@ -33,6 +33,10 @@ TELEGRAM_API = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
 FEEDS = {
     "☸️ Kubernetes Blog": "https://kubernetes.io/feed.xml",
     "☁️ AWS News": "https://aws.amazon.com/blogs/aws/feed/",
+    "☁️ AWS DevOps Blog": "https://aws.amazon.com/blogs/devops/feed/",
+    "☁️ AWS Security Blog": "https://aws.amazon.com/blogs/security/feed/",
+    "☁️ AWS Containers": "https://aws.amazon.com/blogs/containers/feed/",
+    "☁️ AWS What's New": "https://aws.amazon.com/about-aws/whats-new/recent/feed/",
     "🐳 Docker Blog": "https://www.docker.com/blog/feed/",
     "🔀 HashiCorp Blog": "https://www.hashicorp.com/blog/feed.xml",
     "🔧 DevOps.com": "https://devops.com/feed/",

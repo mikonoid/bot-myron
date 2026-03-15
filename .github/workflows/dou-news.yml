@@ -2,8 +2,8 @@ name: "🇺🇦 DOU News"
 
 on:
   schedule:
-    # Раз на день о 14:00 UTC (17:00 Kyiv)
-    - cron: "0 14 * * *"
+    # 2 рази на день: 11:00, 19:00 UTC
+    - cron: "0 11,19 * * *"
   workflow_dispatch:
 
 permissions:
@@ -26,7 +26,7 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHANNEL: "@devopsdaily"
-          MAX_ITEMS: "5"
+          MAX_ITEMS: "1"
           MAX_AGE_HOURS: "48"
         run: python dou_news.py
 

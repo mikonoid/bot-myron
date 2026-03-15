@@ -22,7 +22,7 @@ import requests
 TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 TELEGRAM_CHANNEL = os.environ.get("TELEGRAM_CHANNEL", "@devopsdaily")
 POSTED_IDS_FILE = Path(os.environ.get("POSTED_IDS_FILE", "posted_ids_dou.json"))
-MAX_ITEMS = int(os.environ.get("MAX_ITEMS", "5"))
+MAX_ITEMS = int(os.environ.get("MAX_ITEMS", "1"))
 MAX_AGE_HOURS = int(os.environ.get("MAX_AGE_HOURS", "48"))
 
 TELEGRAM_API = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
