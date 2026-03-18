@@ -31,8 +31,7 @@ TELEGRAM_API = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
 # DOU Feeds
 # ---------------------------------------------------------------------------
 DOU_FEEDS = {
-    "🇺🇦 DOU — Найцікавіше": "https://dou.ua/feed/",
-    "🇺🇦 DOU — Стрічка": "https://dou.ua/lenta/feed/",
+    "🇺🇦 DOU DevOps": "https://dou.ua/forums/feed/tag/DevOps/",
 }
 
 logging.basicConfig(

@@ -2,8 +2,8 @@ name: "📰 DevOps News"
 
 on:
   schedule:
-    # 3 рази на день, кожні 8 годин: 06:00, 14:00, 22:00 UTC
-    - cron: "0 6,14,22 * * *"
+    # 3 рази на день (Kyiv 10:00, 15:00, 20:00)
+    - cron: "0 7,12,17 * * *"
   workflow_dispatch:
 
 permissions:

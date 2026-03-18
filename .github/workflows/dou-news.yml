@@ -2,8 +2,8 @@ name: "🇺🇦 DOU News"
 
 on:
   schedule:
-    # 2 рази на день: 11:00, 19:00 UTC
-    - cron: "0 11,19 * * *"
+    # 2 рази на день (Kyiv 13:00, 21:00 → 20:00 max, тому 10:00, 18:00 UTC)
+    - cron: "0 10,18 * * *"
   workflow_dispatch:
 
 permissions:
