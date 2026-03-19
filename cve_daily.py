@@ -40,18 +40,34 @@ CVE_FEEDS = {
 # Keyword filter — тільки DevOps‑related CVE
 # ---------------------------------------------------------------------------
 KEYWORDS = [
-    "kubernetes", "k8s", "kube-",
-    "docker", "containerd", "runc", "moby",
-    "aws", "amazon", "ec2", "s3", "lambda", "eks", "ecs", "ecr",
-    "linux", "kernel", "glibc", "systemd", "openssh", "openssl",
-    "devops", "jenkins", "gitlab", "github", "cicd", "ci/cd",
-    "terraform", "ansible", "helm", "argocd", "argo",
-    "nginx", "envoy", "istio", "traefik",
-    "prometheus", "grafana", "elasticsearch", "kibana",
-    "redis", "postgres", "mysql", "mongodb",
-    "vault", "consul", "nomad",
-    "trivy", "falco", "grype", "snyk",
-    "cloud", "container", "node.js", "python",
+    # Container & orchestration
+    "kubernetes", "k8s", "kube-proxy", "kubelet",
+    "docker", "containerd", "runc", "moby", "podman", "buildkit",
+    # Cloud providers
+    "aws", "eks", "ecs", "ecr", "lambda",
+    "azure", "aks", "gcp", "gke",
+    # CI/CD
+    "jenkins", "gitlab", "github actions", "argocd", "argo-cd",
+    "circleci", "drone", "tekton", "flux",
+    # IaC & config
+    "terraform", "ansible", "helm", "pulumi", "crossplane",
+    # Networking & ingress
+    "nginx", "envoy", "istio", "traefik", "haproxy", "caddy",
+    "coredns", "calico", "cilium",
+    # Monitoring & observability
+    "prometheus", "grafana", "elasticsearch", "kibana", "fluentd",
+    "fluentbit", "loki", "jaeger", "datadog", "opentelemetry",
+    # Databases (used in DevOps)
+    "redis", "postgres", "mysql", "mongodb", "etcd",
+    # Security tools
+    "vault", "trivy", "falco", "grype", "snyk", "cosign",
+    "kyverno", "opa", "gatekeeper",
+    # Core infra
+    "openssh", "openssl", "systemd", "sudo",
+    "git ", "curl", "wget",
+    # Languages & runtimes
+    "node.js", "python", "golang", "ruby", "java ", "php ",
+    "npm", "pip", "cargo",
 ]
 
 
