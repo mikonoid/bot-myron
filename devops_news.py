@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 DevOps News for @devopsdaily
-Раз на день постить новини з AWS, Kubernetes, DevOps блогів.
 """
 
 import os
@@ -48,11 +47,59 @@ FEEDS = {
     "📦 Helm Releases": "https://github.com/helm/helm/releases.atom",
 }
 
+# ---------------------------------------------------------------------------
+# Keyword filter — applied only to general-security feeds
+# to keep content DevOps/infra-relevant
+# ---------------------------------------------------------------------------
+KEYWORD_FILTER_FEEDS = {"🕵️ The Hacker News", "🔑 Krebs on Security"}
+
+DEVOPS_KEYWORDS = [
+    # OS / kernel
+    "linux", "kernel", "ubuntu", "debian", "rhel", "centos", "alpine",
+    # containers / orchestration
+    "kubernetes", "k8s", "kubectl", "helm", "docker", "containerd", "podman",
+    "container", "oci", "cri-o",
+    # CI/CD
+    "ci/cd", "cicd", "pipeline", "jenkins", "gitlab", "github actions",
+    "argocd", "flux", "tekton", "spinnaker",
+    # IaC
+    "terraform", "ansible", "pulumi", "cloudformation", "crossplane",
+    "puppet", "chef",
+    # cloud
+    "aws", "amazon web services", "ec2", "s3", "iam", "lambda",
+    "eks", "ecs", "fargate", "rds", "cloudwatch",
+    "gcp", "google cloud", "gke", "bigquery",
+    "azure", "aks",
+    # networking / proxies
+    "nginx", "envoy", "istio", "traefik", "cilium", "calico",
+    # secrets / PKI
+    "vault", "openssh", "openssl", "tls", "ssl", "certificate", "ssh key",
+    # supply chain
+    "supply chain", "npm", "pypi", "pip", "registry", "artifact",
+    # observability
+    "prometheus", "grafana", "datadog", "loki", "jaeger", "opentelemetry",
+    # DBs / queues  (infra angle)
+    "redis", "postgres", "postgresql", "etcd", "kafka",
+    # source control / scm
+    "git", "github", "gitlab",
+    # generic
+    "devops", "sre", "platform engineering", "devsecops", "infra",
+    "cloud-native", "microservice",
+]
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
 )
 log = logging.getLogger("devops-news")
+
+
+def is_devops_relevant(entry) -> bool:
+    """Return True if title+summary contain at least one DevOps keyword."""
+    text = (
+        (entry.get("title") or "") + " " + (entry.get("summary") or "")
+    ).lower()
+    return any(kw in text for kw in DEVOPS_KEYWORDS)
 
 # ---------------------------------------------------------------------------
 # Persistence
@@ -183,6 +230,10 @@ def run():
 
             pub = parse_published(entry)
             if pub and pub < cutoff:
+                continue
+
+            if feed_name in KEYWORD_FILTER_FEEDS and not is_devops_relevant(entry):
+                log.debug("  skip (not devops-relevant): %s", entry.get("title", "?")[:80])
                 continue
 
             if send_message(format_entry(feed_name, entry)):
