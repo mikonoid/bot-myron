@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 DevOps News for @devopsdaily
-Раз на день постить новини з AWS, Kubernetes, DevOps блогів.
 """
 
 import os
