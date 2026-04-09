@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 DevOps News for @devopsdaily
+Раз на день постить новини з AWS, Kubernetes, DevOps блогів.
 """
 
 import os
@@ -30,6 +31,7 @@ TELEGRAM_API = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
 # News Feeds
 # ---------------------------------------------------------------------------
 FEEDS = {
+    # --- DevOps / Cloud ---
     "☸️ Kubernetes Blog": "https://kubernetes.io/feed.xml",
     "☁️ AWS News": "https://aws.amazon.com/blogs/aws/feed/",
     "☁️ AWS DevOps Blog": "https://aws.amazon.com/blogs/devops/feed/",
@@ -39,8 +41,14 @@ FEEDS = {
     "🐳 Docker Blog": "https://www.docker.com/blog/feed/",
     "🔀 HashiCorp Blog": "https://www.hashicorp.com/blog/feed.xml",
     "🔧 DevOps.com": "https://devops.com/feed/",
-    "🕵️ The Hacker News": "https://feeds.feedburner.com/TheHackersNews",
+    # --- Security (DevOps-filtered) ---
     "🔑 Krebs on Security": "https://krebsonsecurity.com/feed/",
+    "🛡️ BleepingComputer": "https://www.bleepingcomputer.com/feed/",
+    # --- AI for DevOps (filtered) ---
+    "🤖 Google Cloud AI": "https://cloud.google.com/blog/topics/ai-machine-learning/rss/",
+    "🤖 AWS ML Blog": "https://aws.amazon.com/blogs/machine-learning/feed/",
+    "🤖 GitHub Blog": "https://github.blog/feed/",
+    # --- Releases ---
     "📦 K8s Releases": "https://github.com/kubernetes/kubernetes/releases.atom",
     "📦 Terraform Releases": "https://github.com/hashicorp/terraform/releases.atom",
     "📦 ArgoCD Releases": "https://github.com/argoproj/argo-cd/releases.atom",
@@ -48,10 +56,16 @@ FEEDS = {
 }
 
 # ---------------------------------------------------------------------------
-# Keyword filter — applied only to general-security feeds
+# Keyword filter — applied to security and AI feeds
 # to keep content DevOps/infra-relevant
 # ---------------------------------------------------------------------------
-KEYWORD_FILTER_FEEDS = {"🕵️ The Hacker News", "🔑 Krebs on Security"}
+KEYWORD_FILTER_FEEDS = {
+    "🔑 Krebs on Security",
+    "🛡️ BleepingComputer",
+    "🤖 Google Cloud AI",
+    "🤖 AWS ML Blog",
+    "🤖 GitHub Blog",
+}
 
 DEVOPS_KEYWORDS = [
     # OS / kernel
@@ -85,6 +99,11 @@ DEVOPS_KEYWORDS = [
     # generic
     "devops", "sre", "platform engineering", "devsecops", "infra",
     "cloud-native", "microservice",
+    # AI / ML for DevOps
+    "copilot", "llm", "ai agent", "generative ai", "chatgpt", "gemini",
+    "ai ops", "aiops", "mlops", "model deployment", "inference",
+    "code generation", "github copilot", "amazon q", "vertex ai",
+    "bedrock", "sagemaker",
 ]
 
 logging.basicConfig(
